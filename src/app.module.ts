@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { CustomPasswordModule } from './custom-password/custom-password.module';
 
 @Module({
-  imports: [],
+  imports: [CustomPasswordModule],
   controllers: [AppController],
   providers: [AppService],
 })
