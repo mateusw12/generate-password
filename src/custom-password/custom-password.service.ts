@@ -15,7 +15,8 @@ export class CustomPasswordService {
   private readonly HEX_CHARS_LOWER = '0123456789abcdef';
   private readonly HEX_CHARS_UPPER = '0123456789ABCDEF';
 
-  private readonly BASE64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  private readonly BASE64_CHARS =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   generate(dto: CustomPasswordDto): string[] {
     switch (dto.type) {
@@ -29,6 +30,8 @@ export class CustomPasswordService {
         return this.generateHex(dto);
       case PasswordType.BASE64:
         return this.generateBase64(dto);
+      case PasswordType.STRONG:
+        return this.generateStrong(dto);
       default:
         throw new Error('Tipo de senha inválido');
     }
@@ -41,7 +44,8 @@ export class CustomPasswordService {
     if (dto.numbers) chars += this.NUMBERS;
     if (dto.symbols) chars += this.SYMBOLS;
 
-    if (!chars.length) throw new Error('Pelo menos um tipo de caractere deve ser selecionado');
+    if (!chars.length)
+      throw new Error('Pelo menos um tipo de caractere deve ser selecionado');
 
     return this.generateFromChars(chars, dto);
   }
@@ -63,7 +67,8 @@ export class CustomPasswordService {
       for (let j = 0; j < dto.length; j++) {
         let char = '';
         if (useConsonant) {
-          char = this.CONSONANTS[Math.floor(Math.random() * this.CONSONANTS.length)];
+          char =
+            this.CONSONANTS[Math.floor(Math.random() * this.CONSONANTS.length)];
         } else {
           char = this.VOWELS[Math.floor(Math.random() * this.VOWELS.length)];
         }
@@ -102,6 +107,39 @@ export class CustomPasswordService {
       }
       passwords.push(password);
     }
+    return passwords;
+  }
+
+  private generateStrong(dto: CustomPasswordDto): string[] {
+    // Garantir que todos os tipos de caractere estão incluídos
+    const chars = this.UPPERCASE + this.LOWERCASE + this.NUMBERS + this.SYMBOLS;
+
+    const passwords: string[] = [];
+    const minLength = Math.max(dto.length, 12); // tamanho mínimo recomendado 12
+
+    for (let i = 0; i < (dto.count || 1); i++) {
+      let password = '';
+      // Garantir pelo menos um de cada tipo
+      password +=
+        this.UPPERCASE[Math.floor(Math.random() * this.UPPERCASE.length)];
+      password +=
+        this.LOWERCASE[Math.floor(Math.random() * this.LOWERCASE.length)];
+      password += this.NUMBERS[Math.floor(Math.random() * this.NUMBERS.length)];
+      password += this.SYMBOLS[Math.floor(Math.random() * this.SYMBOLS.length)];
+
+      // Preencher o restante com caracteres aleatórios
+      for (let j = 4; j < minLength; j++) {
+        password += chars[Math.floor(Math.random() * chars.length)];
+      }
+
+      // Embaralhar os caracteres para não deixar padrão
+      password = password
+        .split('')
+        .sort(() => Math.random() - 0.5)
+        .join('');
+      passwords.push(password);
+    }
+
     return passwords;
   }
 }
