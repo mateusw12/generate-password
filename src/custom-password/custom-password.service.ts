@@ -15,6 +15,8 @@ export class CustomPasswordService {
   private readonly HEX_CHARS_LOWER = '0123456789abcdef';
   private readonly HEX_CHARS_UPPER = '0123456789ABCDEF';
 
+  private readonly BASE64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
   generate(dto: CustomPasswordDto): string[] {
     switch (dto.type) {
       case PasswordType.CUSTOM:
@@ -25,6 +27,8 @@ export class CustomPasswordService {
         return this.generatePronunciable(dto);
       case PasswordType.HEX:
         return this.generateHex(dto);
+      case PasswordType.BASE64:
+        return this.generateBase64(dto);
       default:
         throw new Error('Tipo de senha inválido');
     }
@@ -39,30 +43,12 @@ export class CustomPasswordService {
 
     if (!chars.length) throw new Error('Pelo menos um tipo de caractere deve ser selecionado');
 
-    const passwords: string[] = [];
-    for (let i = 0; i < (dto.count || 1); i++) {
-      let password = '';
-      for (let j = 0; j < dto.length; j++) {
-        const randomIndex = Math.floor(Math.random() * chars.length);
-        password += chars[randomIndex];
-      }
-      passwords.push(password);
-    }
-    return passwords;
+    return this.generateFromChars(chars, dto);
   }
 
   private generateSimple(dto: CustomPasswordDto): string[] {
     const chars = this.LOWERCASE + this.NUMBERS;
-    const passwords: string[] = [];
-    for (let i = 0; i < (dto.count || 1); i++) {
-      let password = '';
-      for (let j = 0; j < dto.length; j++) {
-        const randomIndex = Math.floor(Math.random() * chars.length);
-        password += chars[randomIndex];
-      }
-      passwords.push(password);
-    }
-    return passwords;
+    return this.generateFromChars(chars, dto);
   }
 
   private generatePronunciable(dto: CustomPasswordDto): string[] {
@@ -99,6 +85,14 @@ export class CustomPasswordService {
 
   private generateHex(dto: CustomPasswordDto): string[] {
     const chars = dto.uppercase ? this.HEX_CHARS_UPPER : this.HEX_CHARS_LOWER;
+    return this.generateFromChars(chars, dto);
+  }
+
+  private generateBase64(dto: CustomPasswordDto): string[] {
+    return this.generateFromChars(this.BASE64_CHARS, dto);
+  }
+
+  private generateFromChars(chars: string, dto: CustomPasswordDto): string[] {
     const passwords: string[] = [];
     for (let i = 0; i < (dto.count || 1); i++) {
       let password = '';
